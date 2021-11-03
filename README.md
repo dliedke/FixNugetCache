@@ -8,7 +8,7 @@ Usually when restoring NuGet packages the following issue can happen:
 Error Invalid character in the given encoding. Line 1, position 1.
 
 Related NuGet Issue:
-https://github.com/NuGet/Home/issues/11037
+<a href="https://github.com/NuGet/Home/issues/11037" target="_blank">https://github.com/NuGet/Home/issues/11037</a>
 
 Related feature request:
-https://github.com/NuGet/Home/issues/11045
+<a href="https://github.com/NuGet/Home/issues/11045" target="_blank">https://github.com/NuGet/Home/issues/11045</a>
