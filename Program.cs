@@ -16,7 +16,8 @@ namespace FixNugetCache
             List<string> corruptedPackagesList = new();
 
             // Get the nuget package cache path for the current user
-            string nugetCachePath = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\.nuget\packages");
+            //string nugetCachePath = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\.nuget\packages");
+            string nugetCachePath = Environment.ExpandEnvironmentVariables(@"C:\Temp\packages");
 
             // Search for all nuspec files
             string[] nuspecFiles = Directory.GetFiles(nugetCachePath, "*.nuspec", SearchOption.AllDirectories);
@@ -36,23 +37,21 @@ namespace FixNugetCache
 
                         // Delete the corrupted package and add to the list
                         DirectoryInfo di = new(Path.GetDirectoryName(corruptedPackagePath));
-                        if (di.Exists)
+                        try
                         {
-                            try
-                            {
-                                di.Delete(true);
-                                corruptedPackagesList.Add(corruptedPackagePath);
-                            }
-                            catch (Exception ex)
-                            {
-                                corruptedPackagesList.Add($"Error deleting folder: {corruptedPackagePath} --> {ex.GetErrorMsg()}");
-                            }
+                            di.Delete(true);
+                            corruptedPackagesList.Add(corruptedPackagePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            corruptedPackagesList.Add($"Error deleting folder: {corruptedPackagePath} --> {ex.GetErrorMsg()}");
                         }
                     }
                 }
             }
 
-            Console.Write("\r\n\r\n");
+            Console.WriteLine();
+            Console.WriteLine();
 
             // If we had corrupted packages
             bool errors = false;
@@ -79,17 +78,22 @@ namespace FixNugetCache
                 Console.WriteLine("No issues found Nuget packages cache.");
             }
 
-            Console.Write("\r\n\r\n");
+            Console.WriteLine();
+            Console.WriteLine();
 
             if (!errors)
             {
+                // Complete fixing issues
                 Console.WriteLine("COMPLETE checking/fixing Nuget packages cache issues.");
             }
             else
             {
-                
+                // Not all issues could be fixed
                 Console.WriteLine("ERRORS when checking/fixing Nuget packages cache issues.");
             }
+
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadLine();
         }
 
         public static bool IsValidXml(string xmlFileName)

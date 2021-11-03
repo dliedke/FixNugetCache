@@ -3,7 +3,7 @@ using System.Text;
 
 namespace FixNugetCache
 {
-    public static class ExceptionExtension
+    public static class ExceptionExtensions
     {
         public static string GetErrorMsg(this Exception ex)
         {

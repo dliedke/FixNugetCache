@@ -12,3 +12,7 @@ Related NuGet Issue:
 
 Related feature request:
 <a href="https://github.com/NuGet/Home/issues/11045" target="_blank">https://github.com/NuGet/Home/issues/11045</a>
+
+Download binaries already compiled to run with .NET 5.0 from:
+https://github.com/dliedke/FixNugetCache/releases/tag/1.0
+
