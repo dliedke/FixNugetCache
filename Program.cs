@@ -16,8 +16,7 @@ namespace FixNugetCache
             List<string> corruptedPackagesList = new();
 
             // Get the nuget package cache path for the current user
-            //string nugetCachePath = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\.nuget\packages");
-            string nugetCachePath = Environment.ExpandEnvironmentVariables(@"C:\Temp\packages");
+            string nugetCachePath = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\.nuget\packages");
 
             // Search for all nuspec files
             string[] nuspecFiles = Directory.GetFiles(nugetCachePath, "*.nuspec", SearchOption.AllDirectories);
