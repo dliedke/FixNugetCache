@@ -86,12 +86,17 @@ namespace FixNugetCache
 
             if (!errors)
             {
+                // Complete fixing issues
                 Console.WriteLine("COMPLETE checking/fixing Nuget packages cache issues.");
             }
             else
             {
+                // Not all issues could be fixed
                 Console.WriteLine("ERRORS when checking/fixing Nuget packages cache issues.");
             }
+
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadLine();
         }
 
         public static bool IsValidXml(string xmlFileName)
