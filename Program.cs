@@ -8,7 +8,7 @@ namespace FixNugetCache
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static void Main()
         {
             Console.WriteLine("Make sure to close all VS.NET instances.");
             Console.WriteLine("Analyzing and fixing Nuget packages cache issues... Please wait...");
@@ -24,31 +24,28 @@ namespace FixNugetCache
             // Go throgh all nuspec files
             foreach (string file in nuspecFiles)
             {
-                if (File.Exists(file))
+                // Check if it a valid XML
+                if (!IsValidXml(file))
                 {
-                    // Check if it a valid XML
-                    if (!IsValidXml(file))
+                    // If not valid, then get the full package directory
+                    Regex regex = new(@"(.+)packages(.)+?\\");
+                    Match match = regex.Match(file);
+                    if (match.Success)
                     {
-                        // If not valid, then get the full package directory
-                        Regex regex = new(@"(.+)packages(.)+?\\");
-                        Match match = regex.Match(file);
-                        if (match.Success)
-                        {
-                            string corruptedPackagePath = match.Value;
+                        string corruptedPackagePath = match.Value;
 
-                            // Delete the corrupted package and add to the list
-                            DirectoryInfo di = new(Path.GetDirectoryName(corruptedPackagePath));
-                            if (di.Exists)
+                        // Delete the corrupted package and add to the list
+                        DirectoryInfo di = new(Path.GetDirectoryName(corruptedPackagePath));
+                        if (di.Exists)
+                        {
+                            try
                             {
-                                try
-                                {
-                                    di.Delete(true);
-                                    corruptedPackagesList.Add(corruptedPackagePath);
-                                }
-                                catch (Exception ex)
-                                {
-                                    corruptedPackagesList.Add($"Error deleting folder: {corruptedPackagePath} {ex.Message}");
-                                }
+                                di.Delete(true);
+                                corruptedPackagesList.Add(corruptedPackagePath);
+                            }
+                            catch (Exception ex)
+                            {
+                                corruptedPackagesList.Add($"Error deleting folder: {corruptedPackagePath} --> {ex.GetErrorMsg()}");
                             }
                         }
                     }
@@ -90,6 +87,7 @@ namespace FixNugetCache
             }
             else
             {
+                
                 Console.WriteLine("ERRORS when checking/fixing Nuget packages cache issues.");
             }
         }
@@ -105,14 +103,13 @@ namespace FixNugetCache
                 // Set the validation settings.
                 XmlReaderSettings settings = new();
                 settings.ValidationType = ValidationType.Schema;
-                settings.ValidationEventHandler += ((sender, e) => { errored = e.Severity == System.Xml.Schema.XmlSeverityType.Error; }); ;
+                settings.ValidationEventHandler += ((sender, e) => { errored = e.Severity == System.Xml.Schema.XmlSeverityType.Error; });
 
                 // Create the XmlReader object.
                 reader = XmlReader.Create(xmlFileName, settings);
 
                 // Parse the file.
                 while (reader.Read());
-                reader.Close();
 
                 return !errored;
             }
@@ -127,6 +124,7 @@ namespace FixNugetCache
                     if (reader != null)
                     {
                         reader.Close();
+                        reader.Dispose();
                     }
                 }
                 catch { }
