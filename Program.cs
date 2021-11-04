@@ -10,88 +10,98 @@ namespace FixNugetCache
     {
         public static void Main()
         {
-            Console.WriteLine("Make sure to close all VS.NET instances.");
-            Console.WriteLine("Analyzing and fixing Nuget packages cache issues... Please wait...");
-
-            List<string> corruptedPackagesList = new();
-
-            // Get the nuget package cache path for the current user
-            string nugetCachePath = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\.nuget\packages");
-
-            // Search for all nuspec files
-            string[] nuspecFiles = Directory.GetFiles(nugetCachePath, "*.nuspec", SearchOption.AllDirectories);
-
-            // Go throgh all nuspec files
-            foreach (string file in nuspecFiles)
+            try
             {
-                // Check if it a valid XML
-                if (!IsValidXml(file))
-                {
-                    // If not valid, then get the full package directory
-                    Regex regex = new(@"(.+)packages(.)+?\\");
-                    Match match = regex.Match(file);
-                    if (match.Success)
-                    {
-                        string corruptedPackagePath = match.Value;
+                Console.WriteLine("Make sure to close all VS.NET instances.");
+                Console.WriteLine("Analyzing and fixing Nuget packages cache issues... Please wait...");
 
-                        // Delete the corrupted package and add to the list
-                        DirectoryInfo di = new(Path.GetDirectoryName(corruptedPackagePath));
-                        try
+                List<string> corruptedPackagesList = new();
+
+                // Get the nuget package cache path for the current user
+                string nugetCachePath = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\.nuget\packages");
+
+                // Search for all nuspec files
+                string[] nuspecFiles = Directory.GetFiles(nugetCachePath, "*.nuspec", SearchOption.AllDirectories);
+
+                // Go throgh all nuspec files found
+                foreach (string file in nuspecFiles)
+                {
+                    // Check if the .nuspec is a valid XML
+                    if (!IsValidXml(file))
+                    {
+                        // If it not valid, then get the full package directory
+                        Regex regex = new(@"(.+)packages(.)+?\\");
+                        Match match = regex.Match(file);
+                        if (match.Success)
                         {
-                            di.Delete(true);
-                            corruptedPackagesList.Add(corruptedPackagePath);
-                        }
-                        catch (Exception ex)
-                        {
-                            corruptedPackagesList.Add($"Error deleting folder: {corruptedPackagePath} --> {ex.GetErrorMsg()}");
+                            string corruptedPackagePath = match.Value;
+
+                            // Delete the corrupted package and add to the list
+                            DirectoryInfo di = new(Path.GetDirectoryName(corruptedPackagePath));
+                            try
+                            {
+                                di.Delete(true);
+                                corruptedPackagesList.Add(corruptedPackagePath);
+                            }
+                            catch (Exception ex)
+                            {
+                                corruptedPackagesList.Add($"Error deleting folder: {corruptedPackagePath} --> {ex.GetErrorMsg()}");
+                            }
                         }
                     }
                 }
-            }
 
-            Console.WriteLine();
-            Console.WriteLine();
+                // Extra lines
+                Console.WriteLine();
+                Console.WriteLine();
 
-            // If we had corrupted packages
-            bool errors = false;
-            if (corruptedPackagesList.Count > 0)
-            {
-                // Show all corrupted packages that were deleted to the user
-                foreach (string file in corruptedPackagesList)
+                // If we found corrupted packages and they were deleted
+                bool errors = false;
+                if (corruptedPackagesList.Count > 0)
                 {
-                    if (!file.StartsWith("Error"))
+                    // Show all corrupted packages that were deleted to the user
+                    foreach (string file in corruptedPackagesList)
                     {
-                        Console.WriteLine($"Package {Path.GetDirectoryName(file)} is corrupted and it was deleted.");
+                        // Check if there was not an error
+                        if (!file.StartsWith("Error"))
+                        {
+                            Console.WriteLine($"Package {Path.GetDirectoryName(file)} is corrupted and it was deleted.");
+                        }
+                        else
+                        {
+                            // There was an error deleting the folder, so show the error to the user
+                            errors = true;
+                            Console.WriteLine(file);
+                        }
+                        Console.WriteLine();
                     }
-                    else
-                    {
-                        errors = true;
-                        Console.WriteLine(file);
-                    }
-                    Console.WriteLine();
+                }
+                else
+                {
+                    // No issues found
+                    Console.WriteLine("No issues found Nuget packages cache.");
+                }
+
+                Console.WriteLine();
+                Console.WriteLine();
+
+                if (!errors)
+                {
+                    // Complete fixing issues
+                    Console.WriteLine("COMPLETE checking/fixing Nuget packages cache issues.");
+                }
+                else
+                {
+                    // Not all issues could be fixed
+                    Console.WriteLine("Some ERRORS when checking/fixing Nuget packages cache issues.");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                // No issues found
-                Console.WriteLine("No issues found Nuget packages cache.");
+                Console.WriteLine($"Error running the application: {ex.GetErrorMsg()}");
             }
 
-            Console.WriteLine();
-            Console.WriteLine();
-
-            if (!errors)
-            {
-                // Complete fixing issues
-                Console.WriteLine("COMPLETE checking/fixing Nuget packages cache issues.");
-            }
-            else
-            {
-                // Not all issues could be fixed
-                Console.WriteLine("ERRORS when checking/fixing Nuget packages cache issues.");
-            }
-
-            Console.WriteLine("Press any key to exit...");
+            Console.WriteLine("\r\nPress any key to exit...");
             Console.ReadLine();
         }
 
@@ -103,15 +113,15 @@ namespace FixNugetCache
             {
                 bool errored = false;
 
-                // Set the validation settings.
+                // Set the validation settings
                 XmlReaderSettings settings = new();
                 settings.ValidationType = ValidationType.Schema;
                 settings.ValidationEventHandler += ((sender, e) => { errored = e.Severity == System.Xml.Schema.XmlSeverityType.Error; });
 
-                // Create the XmlReader object.
+                // Create the XmlReader object
                 reader = XmlReader.Create(xmlFileName, settings);
 
-                // Parse the file.
+                // Parse the file
                 while (reader.Read());
 
                 return !errored;
@@ -122,6 +132,7 @@ namespace FixNugetCache
             }
             finally
             {
+                // Close the file and dispose the reader everytime
                 try
                 {
                     if (reader != null)

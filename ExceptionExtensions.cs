@@ -7,7 +7,7 @@ namespace FixNugetCache
     {
         public static string GetErrorMsg(this Exception ex)
         {
-            StringBuilder sb = new StringBuilder(ex.Message);
+            StringBuilder sb = new(ex.Message);
             Exception inner = ex.InnerException;
             while (inner != null)
             {
